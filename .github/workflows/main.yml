@@ -1,20 +1,22 @@
-name: Build APK
+name: Build Android APK
 on: [push]
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - name: Build with Buildozer
-        uses: FarasAtNobel/buildozer-action@master
+        uses: Peter-S-H/buildozer-action@v2
         with:
-          command: android debug
           buildozer_version: master
+          command: android debug
+          repository_root: .
 
       - name: Upload APK
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
-          name: My-SoccerStars-App
+          name: SoccerStars-AI-Helper
           path: bin/*.apk
+
