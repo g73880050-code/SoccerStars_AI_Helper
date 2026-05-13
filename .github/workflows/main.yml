@@ -8,7 +8,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Build with Buildozer
-        uses: Peter-S-H/buildozer-action@v2
+        uses: FarasAtNobel/buildozer-action@master
         with:
           buildozer_version: master
           command: android debug
@@ -19,4 +19,3 @@ jobs:
         with:
           name: SoccerStars-AI-Helper
           path: bin/*.apk
-
