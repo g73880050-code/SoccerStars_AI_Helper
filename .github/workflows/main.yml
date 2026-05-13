@@ -1,4 +1,4 @@
-name: Build Android APK
+name: Build APK
 on: [push]
 
 jobs:
@@ -8,14 +8,13 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Build with Buildozer
-        uses: Peter-S-H/buildozer-action@v1
+        uses: FarasAtNobel/buildozer-action@master
         with:
-          buildozer_version: master
           command: android debug
-          repository_root: .
+          buildozer_version: master
 
       - name: Upload APK
         uses: actions/upload-artifact@v2
         with:
-          name: SoccerStars-Helper-APK
+          name: My-SoccerStars-App
           path: bin/*.apk
