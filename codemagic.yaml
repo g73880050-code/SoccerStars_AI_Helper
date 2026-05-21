@@ -4,28 +4,27 @@ workflows:
     instance_type: mac_mini_m1
     environment:
       node: 18
-      # لا نضع هنا ANDROID_HOME لتجنب خطأ الـ validation
     scripts:
-      - name: Install dependencies
+      - name: Install System Dependencies
         script: |
           sudo apt-get update
           sudo apt-get install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev android-sdk-platform-tools-common
           pip install --upgrade pip
           pip install buildozer cython
-      - name: Setup Android SDK and Licenses
+      - name: Pre-install Android SDK Tools
         script: |
-          # نحدد المسار هنا داخل السكريبت بدلاً من الـ environment
           export ANDROID_HOME=/usr/local/lib/android/sdk
+          # الموافقة على التراخيص مسبقاً
           mkdir -p "$ANDROID_HOME/licenses"
           echo "8933bad161af4178b1185d1a37fbf41ea5269c55" > "$ANDROID_HOME/licenses/android-sdk-license"
           echo "d56f5187473751e9f783267597378392120e7d58" >> "$ANDROID_HOME/licenses/android-sdk-license"
           echo "84831b9409646a918e30573bab4c9c91346d8a08" >> "$ANDROID_HOME/licenses/android-sdk-license"
-          sdkmanager --update
-          sdkmanager "build-tools;34.0.0" "platforms;android-34" "platform-tools"
-          yes | sdkmanager --licenses || true
+          # تثبيت نسخة محددة ومستقرة من build-tools
+          yes | sdkmanager --licenses
+          sdkmanager "build-tools;33.0.0" "platforms;android-33" "platform-tools"
       - name: Build APK
         script: |
-          export ANDROID_HOME=/usr/local/lib/android/sdk
+          # نستخدم --sdk-build-tools-version لفرض النسخة 33.0.0
           buildozer android debug
     artifacts:
       - bin/*.apk
