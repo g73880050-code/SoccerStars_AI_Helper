@@ -3,41 +3,18 @@ workflows:
     name: Build Android APK
     instance_type: mac_mini_m1
     scripts:
-      - name: Install Dependencies
+      - name: System Diagnostics
         script: |
-          sudo apt-get update
-          sudo apt-get install -y git zip unzip openjdk-17-jdk python3-pip
-          pip install --upgrade pip
-          pip install buildozer cython
-      - name: Setup Android SDK
+          echo "--- فحص المسارات ---"
+          echo $PATH
+          echo "--- فحص مكان وجود build-tools ---"
+          ls -R /usr/local/lib/android/sdk/build-tools/ || echo "مجلد build-tools غير موجود في المسار المتوقع"
+          echo "--- فحص نسخة SDK Manager ---"
+          sdkmanager --version || echo "sdkmanager غير متاح"
+      - name: Build APK (Force 33.0.0)
         script: |
-          # تثبيت أدوات سطر الأوامر الخاصة بالأندرويد يدوياً
-          export ANDROID_HOME=$HOME/android-sdk
-          mkdir -p $ANDROID_HOME/cmdline-tools
-          cd $ANDROID_HOME/cmdline-tools
-          curl -s https://dl.google.com/android/repository/commandlinetools-mac-10406996_latest.zip -o tools.zip
-          unzip -q tools.zip
-          mv cmdline-tools latest
-          rm tools.zip
-          
-          # إضافة الأدوات للمسار لكي يراها النظام
-          export PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin
-          
-          # قبول التراخيص
-          mkdir -p "$ANDROID_HOME/licenses"
-          echo "8933bad161af4178b1185d1a37fbf41ea5269c55" > "$ANDROID_HOME/licenses/android-sdk-license"
-          echo "d56f5187473751e9f783267597378392120e7d58" >> "$ANDROID_HOME/licenses/android-sdk-license"
-          echo "84831b9409646a918e30573bab4c9c91346d8a08" >> "$ANDROID_HOME/licenses/android-sdk-license"
-          
-          # تثبيت الأدوات المطلوبة
-          sdkmanager --sdk_root=$ANDROID_HOME "build-tools;33.0.0" "platforms;android-33" "platform-tools"
-      - name: Build APK
-        script: |
-          export ANDROID_HOME=$HOME/android-sdk
-          export PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools
-          # تنظيف أي مخلفات قديمة
-          rm -rf .buildozer/android/platform/android/build-tools
-          buildozer android debug
+          export ANDROID_HOME=/usr/local/lib/android/sdk
+          # إجبار البناء على استخدام ما ثبتناه فقط
+          buildozer -v android debug
     artifacts:
       - bin/*.apk
-
