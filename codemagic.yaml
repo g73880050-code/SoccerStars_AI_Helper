@@ -12,10 +12,13 @@ workflows:
           python3 -m venv venv
           source venv/bin/activate
           pip install --upgrade pip
-          # تثبيت المحرك و Cython معاً لضمان وجودهما داخل البيئة
           pip install python-for-android cython
           
-          # 2. بناء الـ APK
+          # 2. حقن Cython في متغير البيئة لضمان رؤيته
+          export PYTHONPATH=$PYTHONPATH:$(pwd)/venv/lib/python3.12/site-packages
+          
+          # 3. بناء الـ APK
+          # إضافة --requirements=cython للتأكد من وجودها في بيئة الـ APK النهائية
           p4a apk --private . \
             --package=com.soccerstars.analyzer \
             --name="Soccer Stars Analyzer" \
@@ -29,3 +32,4 @@ workflows:
             --dist_name=soccerstars
     artifacts:
       - "*.apk"
+
