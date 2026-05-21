@@ -4,30 +4,28 @@ workflows:
     instance_type: mac_mini_m1
     environment:
       node: 18
-      ANDROID_HOME: /usr/local/lib/android/sdk
+      # لا نضع هنا ANDROID_HOME لتجنب خطأ الـ validation
     scripts:
       - name: Install dependencies
         script: |
           sudo apt-get update
-          # تثبيت الحزم الأساسية التي توفر AIDL والأدوات المطلوبة
           sudo apt-get install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev android-sdk-platform-tools-common
           pip install --upgrade pip
           pip install buildozer cython
       - name: Setup Android SDK and Licenses
         script: |
-          # الموافقة على جميع التراخيص وتثبيت الأدوات يدوياً
+          # نحدد المسار هنا داخل السكريبت بدلاً من الـ environment
+          export ANDROID_HOME=/usr/local/lib/android/sdk
           mkdir -p "$ANDROID_HOME/licenses"
           echo "8933bad161af4178b1185d1a37fbf41ea5269c55" > "$ANDROID_HOME/licenses/android-sdk-license"
           echo "d56f5187473751e9f783267597378392120e7d58" >> "$ANDROID_HOME/licenses/android-sdk-license"
           echo "84831b9409646a918e30573bab4c9c91346d8a08" >> "$ANDROID_HOME/licenses/android-sdk-license"
-          
-          # تثبيت الأدوات التي يحتاجها buildozer
           sdkmanager --update
           sdkmanager "build-tools;34.0.0" "platforms;android-34" "platform-tools"
           yes | sdkmanager --licenses || true
       - name: Build APK
         script: |
-          # تأكيد الإصدار وتجاوز أي خطأ في البحث
+          export ANDROID_HOME=/usr/local/lib/android/sdk
           buildozer android debug
     artifacts:
       - bin/*.apk
