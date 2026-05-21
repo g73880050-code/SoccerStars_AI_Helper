@@ -4,27 +4,37 @@ workflows:
     instance_type: mac_mini_m1
     environment:
       node: 18
+      # تعريف المسار ليكون متاحاً دائماً
+      ANDROID_HOME: /usr/local/lib/android/sdk
+      PATH: $PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools
     scripts:
       - name: Install System Dependencies
         script: |
           sudo apt-get update
-          sudo apt-get install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev android-sdk-platform-tools-common
+          sudo apt-get install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev
           pip install --upgrade pip
           pip install buildozer cython
-      - name: Pre-install Android SDK Tools
+      - name: Setup Android SDK
         script: |
-          export ANDROID_HOME=/usr/local/lib/android/sdk
-          # الموافقة على التراخيص مسبقاً
+          # تثبيت أدوات سطر الأوامر الخاصة بالأندرويد
+          mkdir -p $ANDROID_HOME/cmdline-tools
+          cd $ANDROID_HOME/cmdline-tools
+          curl -s https://dl.google.com/android/repository/commandlinetools-mac-10406996_latest.zip -o tools.zip
+          unzip -q tools.zip
+          mv cmdline-tools latest
+          rm tools.zip
+          
+          # الموافقة على التراخيص
           mkdir -p "$ANDROID_HOME/licenses"
           echo "8933bad161af4178b1185d1a37fbf41ea5269c55" > "$ANDROID_HOME/licenses/android-sdk-license"
           echo "d56f5187473751e9f783267597378392120e7d58" >> "$ANDROID_HOME/licenses/android-sdk-license"
           echo "84831b9409646a918e30573bab4c9c91346d8a08" >> "$ANDROID_HOME/licenses/android-sdk-license"
-          # تثبيت نسخة محددة ومستقرة من build-tools
-          yes | sdkmanager --licenses
-          sdkmanager "build-tools;33.0.0" "platforms;android-33" "platform-tools"
+          
+          # تثبيت الحزم المطلوبة
+          sdkmanager --sdk_root=$ANDROID_HOME "build-tools;33.0.0" "platforms;android-33" "platform-tools"
       - name: Build APK
         script: |
-          # نستخدم --sdk-build-tools-version لفرض النسخة 33.0.0
           buildozer android debug
     artifacts:
       - bin/*.apk
+
