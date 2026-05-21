@@ -3,15 +3,20 @@ workflows:
     name: Build Android APK with p4a
     instance_type: mac_mini_m1
     scripts:
-      - name: Install dependencies
+      - name: Install System Prerequisites
         script: |
-          sudo apt-get update
-          sudo apt-get install -y git zip unzip openjdk-17-jdk python3-pip
-          pip install --upgrade pip
-          pip install python-for-android
+          # تثبيت الأدوات التي يفتقدها النظام على macOS
+          brew install autoconf libtool pkg-config automake
       - name: Build APK directly with p4a
         script: |
-          # هنا نقوم بتحديد إعدادات المشروع يدوياً بعيداً عن Buildozer
+          # 1. إعداد البيئة
+          python3 -m venv venv
+          source venv/bin/activate
+          pip install --upgrade pip
+          pip install python-for-android
+          
+          # 2. بناء الـ APK مع تمرير خيار 'yes' تلقائياً لتجاوز أسئلة النظام
+          # واستخدام --no-prerequisites لأننا ثبتناها يدوياً أعلاه
           p4a apk --private . \
             --package=com.soccerstars.analyzer \
             --name="Soccer Stars Analyzer" \
@@ -21,6 +26,7 @@ workflows:
             --arch=arm64-v8a \
             --sdk-dir=$HOME/android-sdk \
             --android-api=33 \
+            --no-prerequisites \
             --dist_name=soccerstars
     artifacts:
       - "*.apk"
