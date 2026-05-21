@@ -8,21 +8,20 @@ workflows:
           brew install autoconf libtool pkg-config automake
       - name: Build APK directly with p4a
         script: |
-          # 1. إعداد البيئة
+          # 1. إعداد البيئة الأساسية
           python3 -m venv venv
           source venv/bin/activate
           pip install --upgrade pip
-          pip install python-for-android
+          # تثبيت المحرك و Cython معاً لضمان وجودهما داخل البيئة
+          pip install python-for-android cython
           
-          # 2. استخدام مسار الـ SDK الذي توفره Codemagic تلقائياً
-          # المتغير ANDROID_SDK_ROOT هو المسار الرسمي والموجود في نظام Codemagic
-          
+          # 2. بناء الـ APK
           p4a apk --private . \
             --package=com.soccerstars.analyzer \
             --name="Soccer Stars Analyzer" \
             --version=1.1.0 \
             --bootstrap=sdl2 \
-            --requirements=python3,kivy,numpy,opencv,pyjnius \
+            --requirements=python3,kivy,numpy,opencv,pyjnius,cython \
             --arch=arm64-v8a \
             --sdk-dir=$ANDROID_SDK_ROOT \
             --android-api=33 \
