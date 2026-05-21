@@ -6,19 +6,21 @@ workflows:
       - name: Install System Prerequisites
         script: |
           brew install autoconf libtool pkg-config automake
-      - name: Build APK directly with p4a
+      - name: Prepare Final Build Environment
         script: |
-          # 1. إعداد البيئة الأساسية
+          # 1. إنشاء البيئة وتثبيت كل شيء مسبقاً
           python3 -m venv venv
           source venv/bin/activate
           pip install --upgrade pip
-          pip install python-for-android cython
+          # تثبيت المحرك والمتطلبات بشكل صريح هنا
+          pip install python-for-android cython numpy
           
-          # 2. حقن Cython في متغير البيئة لضمان رؤيته
-          export PYTHONPATH=$PYTHONPATH:$(pwd)/venv/lib/python3.12/site-packages
+          # 2. تحديد متغيرات البيئة لضمان رؤية الموديولات
+          export PATH=$PATH:$(pwd)/venv/bin
+          export PYTHONPATH=$(pwd)/venv/lib/python3.12/site-packages
           
-          # 3. بناء الـ APK
-          # إضافة --requirements=cython للتأكد من وجودها في بيئة الـ APK النهائية
+          # 3. بناء الـ APK باستخدام --no-toolchain-install
+          # هذه العلامة تمنع p4a من محاولة إنشاء بيئة معزولة وتجعله يستخدم التي أنشأناها
           p4a apk --private . \
             --package=com.soccerstars.analyzer \
             --name="Soccer Stars Analyzer" \
@@ -29,7 +31,7 @@ workflows:
             --sdk-dir=$ANDROID_SDK_ROOT \
             --android-api=33 \
             --no-prerequisites \
+            --no-toolchain-install \
             --dist_name=soccerstars
     artifacts:
       - "*.apk"
-
