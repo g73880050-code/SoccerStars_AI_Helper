@@ -3,18 +3,39 @@ workflows:
     name: Build Android APK
     instance_type: mac_mini_m1
     scripts:
-      - name: System Diagnostics
+      - name: Setup Environment
         script: |
-          echo "--- فحص المسارات ---"
-          echo $PATH
-          echo "--- فحص مكان وجود build-tools ---"
-          ls -R /usr/local/lib/android/sdk/build-tools/ || echo "مجلد build-tools غير موجود في المسار المتوقع"
-          echo "--- فحص نسخة SDK Manager ---"
-          sdkmanager --version || echo "sdkmanager غير متاح"
-      - name: Build APK (Force 33.0.0)
+          # تثبيت الحزم الأساسية
+          sudo apt-get update
+          sudo apt-get install -y python3-pip python3-venv openjdk-17-jdk
+          
+          # إنشاء بيئة افتراضية لتجنب تضارب المسارات
+          python3 -m venv venv
+          source venv/bin/activate
+          
+          # تثبيت الأدوات داخل البيئة الافتراضية
+          pip install --upgrade pip
+          pip install buildozer cython
+          
+          # التأكد من أن buildozer متاح للمسار
+          export PATH=$PATH:$HOME/.local/bin
+          
+          # حفظ مسار الـ SDK
+          export ANDROID_HOME=$HOME/android-sdk
+          
+          # تثبيت الأدوات يدوياً
+          mkdir -p $ANDROID_HOME/cmdline-tools
+          # ... (سنفترض أن SDK موجود أو سنقوم بتهيئة بناء تلقائي بسيط)
+          
+      - name: Build APK
         script: |
-          export ANDROID_HOME=/usr/local/lib/android/sdk
-          # إجبار البناء على استخدام ما ثبتناه فقط
-          buildozer -v android debug
+          # تفعيل البيئة في كل خطوة
+          source venv/bin/activate
+          export ANDROID_HOME=$HOME/android-sdk
+          export PATH=$PATH:$HOME/venv/bin
+          
+          # بناء التطبيق
+          buildozer android debug
     artifacts:
       - bin/*.apk
+
